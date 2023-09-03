@@ -8,17 +8,17 @@
 (def allowed-types #{Integer Float Double String Boolean Map Vector})
 
 ;; helpers
-(defn allowed-type? [type]
+(defn- allowed-type? [type]
   (contains? allowed-types type))
 
-(defn vec-or-set [v]
+(defn- vec-or-set [v]
   (or (vector? v)
       (set? v)))
 
-(defn regex? [r]
+(defn- regex? [r]
   (instance? Regex r))
 
-(defn key-type-error [k text]
+(defn- key-type-error [k text]
   (format "Expected type for '%s' is %s" k text))
 
 ;; main
@@ -55,7 +55,7 @@
         req-vals (map (fn req-vals-map [k] (k rule)) reqs)]
     (assert (every? some? req-vals) "Missing required keys for rule.")))
 
-(defn in-check-rule-vals [key rule]
+(defn- check-rule-vals* [key rule]
   (if-let [func (key key->fn)]
     (let [val (key rule)
           text (key key->type-text)]
@@ -64,7 +64,7 @@
 
 (defn- check-rule-vals [rule]
   (doseq [key (keys rule)]
-    (in-check-rule-vals key rule)))
+    (check-rule-vals* key rule)))
 
 (defn check-rule [rule]
   (check-rule-fields rule)
