@@ -1,14 +1,13 @@
 (ns ruler.rules)
 
+;; defs
+(def Map clojure.lang.IPersistentMap)
+(def Vector clojure.lang.IPersistentVector)
+(def Regex java.util.regex.Pattern)
 (def allowed-rule-keys-req #{:key :type})
-(def allowed-types #{Integer Float Double String Boolean})
+(def allowed-types #{Integer Float Double String Boolean Map Vector})
 
-(defn- check-rule-fields [rule]
-  (let [reqs (vec allowed-rule-keys-req)
-        req-vals (reduce (fn check-rule-fields-reduce
-                           [a c] (conj a (c rule))) [] reqs)]
-    (assert (every? some? req-vals) "Missing required keys for rule.")))
-
+;; helpers
 (defn allowed-type? [type]
   (contains? allowed-types type))
 
@@ -16,9 +15,13 @@
   (or (vector? v)
       (set? v)))
 
+(defn regex? [r]
+  (instance? Regex r))
+
 (defn key-type-error [k text]
   (format "Expected type for '%s' is %s" k text))
 
+;; main
 (def key->fn
   {:key         keyword?
    :type        allowed-type?
@@ -30,7 +33,9 @@
    :max         number?
    :min-length  integer?
    :max-length  integer?
-   :contains    vec-or-set})
+   :contains    vec-or-set
+   :format      regex?
+   :format-fn   fn?})
 
 (def key->type-text
   {:key         "Keyword"
@@ -44,6 +49,11 @@
    :min-length  "Integer"
    :max-length  "Integer"
    :contains    "Vector or Set"})
+
+(defn- check-rule-fields [rule]
+  (let [reqs (vec allowed-rule-keys-req)
+        req-vals (map (fn req-vals-map [k] (k rule)) reqs)]
+    (assert (every? some? req-vals) "Missing required keys for rule.")))
 
 (defn in-check-rule-vals [key rule]
   (if-let [func (key key->fn)]
