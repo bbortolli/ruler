@@ -11,21 +11,21 @@
     (when err "Erro :type")))
 
 (defmethod data-key-validation :req
- [_k rule data]
- (let [err (and (:req rule) (nil? (get data (:key rule))))]
-   (when err "Erro :req")))
+  [_k rule data]
+  (let [err (and (:req rule) (nil? (get data (:key rule))))]
+    (when err "Erro :req")))
 
 (defmethod data-key-validation :req-depends
- [_k rule data]
- (let [every-deps? (every? some? (vals (select-keys data (:req-depends rule))))
-       err (and (not every-deps?) (nil? (get data (:key rule))))]
-   (when err "Erro :req-depends")))
+  [_k rule data]
+  (let [every-deps? (every? some? (vals (select-keys data (:req-depends rule))))
+        err (and every-deps? (nil? (get data (:key rule))))]
+    (when err "Erro :req-depends")))
 
 (defmethod data-key-validation :req-fn
- [_k rule data]
- (let [req-fn (:req-fn rule)
-       err (and (req-fn data) (nil? (get data (:key rule))))]
-   (when err "Erro :req-fn")))
+  [_k rule data]
+  (let [req-fn (:req-fn rule)
+        err (and (req-fn data) (nil? (get data (:key rule))))]
+    (when err "Erro :req-fn")))
 
 (defn- limits-validation-error [min max val]
   (not (>= max val min)))

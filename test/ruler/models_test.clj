@@ -9,7 +9,7 @@
    :req true
    :req-depends [:bla]
    :req-fn (fn [_] true)
-   :min-length 0
+   :min-length 3
    :max-length 10
    :length 6
    :contains ["string"]
@@ -45,4 +45,16 @@
     (is (nil? (models/data-key-validation :contains test-rule test-data )) ":contains")
     (is (nil? (models/data-key-validation :format test-rule test-data )) ":format")
     (is (nil? (models/data-key-validation :format-fn test-rule test-data )) ":format-fn"))
-  (testing "Invalid data value"))
+  (testing "Invalid data value"
+    (is (= "Erro :type" (models/data-key-validation :type test-rule {:test 1.1})) ":type")
+    (is (= "Erro :req" (models/data-key-validation :req test-rule {})) ":req")
+    (is (= "Erro :req-depends" (models/data-key-validation :req-depends test-rule {:bla true})) ":req-depends")
+    (is (= "Erro :req-fn" (models/data-key-validation :req-fn test-rule {})) ":req-fn")
+    (is (= "Erro :min-length" (models/data-key-validation :min-length test-rule {:test "a"})) ":min-length")
+    (is (= "Erro :max-length" (models/data-key-validation :max-length test-rule {:test "abcdefghijklmnopqrstuvwxyz"})) ":max-length")
+    (is (= "Erro :min" (models/data-key-validation :min test-rule2 {:test -77777777})) ":min")
+    (is (= "Erro :max" (models/data-key-validation :max test-rule2 {:test 999999999})) ":max")
+    (is (= "Erro :length" (models/data-key-validation :length test-rule {:test "ble"})) ":length")
+    (is (= "Erro :contains" (models/data-key-validation :contains test-rule {:test "bli"})) ":contains")
+    (is (= "Erro :format" (models/data-key-validation :format test-rule {:test "blu"})) ":format")
+    (is (= "Erro :format-fn" (models/data-key-validation :format-fn (assoc test-rule :format-fn (fn [_] false)) {:test "teste"})) ":format-fn")))
