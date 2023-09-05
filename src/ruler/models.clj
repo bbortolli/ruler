@@ -1,8 +1,15 @@
 (ns ruler.models)
 
+(defn type->types [i]
+  (case i
+    Integer
+    #{Integer Long Short Byte}
+    #{i}))
+
 (defn ->validation-error [err k p]
   (when err
     {:key k :pred p}))
+
 (defmulti data-key-validation
   (fn [k _rule _data] k))
 
