@@ -1,9 +1,10 @@
 (ns ruler.models)
 
 (defn type->types [i]
-  (case i
-    Integer
+  (cond
+    (= Integer i)
     #{Integer Long Short Byte}
+    :else
     #{i}))
 
 (defn ->validation-error [err k p]
@@ -20,7 +21,7 @@
         val (get data key)
         val? (some? val)
         types (type->types rule-type)
-        no-instance? (not (contains? types rule-type))
+        no-instance? (not (some #(instance? % val) types))
         err (and val? no-instance?)]
     (->validation-error err key k)))
 
