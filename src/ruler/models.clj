@@ -1,81 +1,115 @@
 (ns ruler.models)
 
-(defmulti data-key-validation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn type->types [i]
+  (cond
+    (= Integer i)
+    #{Integer Long Short Byte}
+    :else
+    #{i}))
+
+(defn ->err [err k p]
+  (when err
+    {:key k :pred p}))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Models.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmulti key-validation
   (fn [k _rule _data] k))
 
-(defmethod data-key-validation :type
-  [_k rule data]
-  (let [rule-type (:type rule)
-        val (get data (:key rule))
-        err (not (instance? rule-type val))]
-    (when err "Erro :type")))
+(defmethod key-validation :type
+  [k {:keys [key type]} data]
+  (let [val (get data key)
+        val? (some? val)
+        types (type->types type)
+        no-instance? (not (some #(instance? % val) types))
+        err (and val? no-instance?)]
+    (->err err key k)))
 
-(defmethod data-key-validation :req
-  [_k rule data]
-  (let [err (and (:req rule) (nil? (get data (:key rule))))]
-    (when err "Erro :req")))
+(defmethod key-validation :req
+  [k {:keys [key req]} data]
+  (let [err (and req (nil? (get data key)))]
+    (->err err key k)))
 
-(defmethod data-key-validation :req-depends
-  [_k rule data]
-  (let [every-deps? (every? some? (vals (select-keys data (:req-depends rule))))
-        err (and every-deps? (nil? (get data (:key rule))))]
-    (when err "Erro :req-depends")))
+(defmethod key-validation :req-depends
+  [k {:keys [key req-depends]} data]
+  (let [values (vals (select-keys data req-depends))
+        every-deps? (every? some? values)
+        err (and every-deps? (nil? (get data key)))]
+    (->err err key k)))
 
-(defmethod data-key-validation :req-fn
-  [_k rule data]
-  (let [req-fn (:req-fn rule)
-        err (and (req-fn data) (nil? (get data (:key rule))))]
-    (when err "Erro :req-fn")))
+(defmethod key-validation :req-fn
+  [k {:keys [key req-fn]} data]
+  (let [req? (req-fn data)
+        err (and req? (nil? (get data key)))]
+    (->err err key k)))
 
-(defn- limits-validation-error [min max val]
+(defn- valid-limits?
+  "Verify if val is between max and min (max >= val >= min)."
+  [min max val]
   (not (>= max val min)))
 
-(defmethod data-key-validation :min
-  [_k rule data]
-  (let [err  (limits-validation-error (:min rule) Double/POSITIVE_INFINITY (get data (:key rule)))]
-    (when err "Erro :min")))
+(defmethod key-validation :min
+  [k {:keys [key min]} data]
+  (when-let [val (get data key)]
+    (when (number? val)
+      (let [max Double/POSITIVE_INFINITY
+            err (valid-limits? min max val)]
+        (->err err key k)))))
 
-(defmethod data-key-validation :max
-  [_k rule data]
-  (let [err  (limits-validation-error Double/NEGATIVE_INFINITY (:max rule) (get data (:key rule)))]
-    (when err "Erro :max")))
+(defmethod key-validation :max
+  [k {:keys [key max]} data]
+  (when-let [val (get data key)]
+    (when (number? val)
+      (let [min Double/NEGATIVE_INFINITY
+            err (valid-limits? min max val)]
+        (->err err key k)))))
 
-(defmethod data-key-validation :min-length
-  [_k rule data]
-  (let [err  (limits-validation-error (:min-length rule) Integer/MAX_VALUE (count (get data (:key rule))))]
-    (when err "Erro :min-length")))
+(defmethod key-validation :min-length
+  [k {:keys [key min-length]} data]
+  (when-let [val (get data key)]
+    (when (string? val)
+      (let [max Integer/MAX_VALUE
+            length (count (get data key))
+            err (valid-limits? min-length max length)]
+        (->err err key k)))))
 
-(defmethod data-key-validation :max-length
-  [_k rule data]
-  (let [err  (limits-validation-error -1 (:max-length rule) (count (get data (:key rule))))]
-    (when err "Erro :max-length")))
+(defmethod key-validation :max-length
+  [k {:keys [key max-length]} data]
+  (when-let [val (get data key)]
+    (when (string? val)
+      (let [min -1
+            length (count (get data key))
+            err (valid-limits? min max-length length)]
+        (->err err key k)))))
 
-(defmethod data-key-validation :length
-  [_k rule data]
-  (let [val  (get data (:key rule))
-        length (:length rule)
+(defmethod key-validation :length
+  [k {:keys [key length]} data]
+  (let [val  (get data key)
         val' (if (string? val) (count val) val)
-        err  (limits-validation-error length length val')]
-    (when err "Erro :length")))
+        err  (valid-limits? length length val')]
+    (->err err key k)))
 
-(defmethod data-key-validation :contains
-  [_k rule data]
-  (let [val (get data (:key rule))
-        values (:contains rule)
-        err (not (contains? (set values) val))]
-    (when err "Erro :contains")))
+(defmethod key-validation :contains
+  [k {:keys [key contains]} data]
+  (let [val (get data key)
+        err (not (contains? (set contains) val))]
+    (->err err key k)))
 
-(defn format-validation-error [fn val]
-  (not (fn val)))
+(defmethod key-validation :format
+  [k {:keys [key format]} data]
+  (let [val (get data key)
+        matches? (re-matches format val)
+        err (not matches?)]
+    (->err err key k)))
 
-(defmethod data-key-validation :format
-  [_k rule data]
-  (let [fmt (:format rule)
-        err (format-validation-error (partial re-matches fmt) (get data (:key rule)))]
-    (when err "Erro :format")))
-
-(defmethod data-key-validation :format-fn
-  [_k rule data]
-  (let [format-fn (:format-fn rule)
-        err (format-validation-error format-fn (get data (:key rule)))]
-    (when err "Erro :format-fn")))
+(defmethod key-validation :format-fn
+  [k {:keys [key format-fn]} data]
+  (let [val (get data key)
+        err (not (format-fn val))]
+    (->err err key k)))
