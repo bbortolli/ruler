@@ -2,68 +2,82 @@
   (:require [ruler.rules :as rules]
             [ruler.models :as models]))
 
-;; defs
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Const definitions.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def allowed-config-keys #{:required-msg :invalid-type-msg})
 
-;; context
-(defn custom-required-msg [rule _data]
-  (format "Required field: %s" (:key rule)))
+(def initial-config
+  {:required-msg #(format "Required field: %s" (:key %))
+   :invalid-type-msg #(format "Invalid type for field: %s" (:key %))})
 
-(defn custom-type-msg [rule _data]
-  (format "Invalid type for field: %s" (:key rule)))
-
-(def models* (atom {}))
-(def config (atom {:required-msg custom-required-msg
-                   :invalid-type-msg custom-type-msg}))
-
-(defn create-model! [k m]
-  (swap! models* assoc k m))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn valid-config? [k _value]
   (contains? allowed-config-keys k))
 
-(defn set-config! [k value]
-  (when (valid-config? k value)
-    (swap! config assoc k value)))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Context manipulation.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn data->rule-errors [rule data]
+(defonce ctx-models* (atom {}))
+(defonce ctx-config* (atom initial-config))
+
+(defn- create-model! [k m]
+  (swap! ctx-models* assoc k m))
+
+(defn- set-config! [k value]
+  (when (valid-config? k value)
+    (swap! ctx-config* assoc k value)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Internal implementations.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- data->rule-errors [rule data]
   (let [keys (keys (dissoc rule :key))
         validate-fn #(models/data-key-validation % rule data)]
     (remove nil? (map validate-fn keys))))
 
-(defn data->model-errors [model data]
+(defn- data->errors [model data]
   (let [validate-fn #(data->rule-errors % data)]
     (remove nil? (flatten (map validate-fn model)))))
 
-(defn data->valid-model? [model data]
-  (let [errors (data->model-errors model data)]
+(defn- data->valid-model? [model data]
+  (let [errors (data->errors model data)]
     (empty? errors)))
 
-;; ! Internal API. Do not use
 (defn validate* [model data]
   (data->valid-model? model data))
 
-;; ! Core API for usage
-(defn defmodel [kw model]
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Public api.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn defmodel
+  "Define a new model rules with identifier kw to the context"
+  {:added "1.0"}
+  [kw model]
   (assert (keyword? kw) "Model identifier should be a keyword.")
   (assert (seq model) "Model can not be empty.")
   (rules/validate-all-rules model)
   (create-model! kw model))
 
-;; Example usage:
-;; (defmodel
-;;   :pessoa
-;;   [{:key :name :type String :required true}
-;;    {:key :age :type Integer :required true}
-;;    {:key :driver-license :type String :req-fn (fn [data] (>= (:age data) 21))}])
-;; => nil
-
-(defn validate [k data]
-  (when-let [model (k @models*)]
+(defn valid?
+  "Validate input data following the rules defined at model with identifier k"
+  {:added "1.0"}
+  [k data]
+  (when-let [model (k @ctx-models*)]
     (validate* model data)))
 
-(defn describe [k data]
-  (when-let [model (k @models*)]
-    (let [err (data->model-errors model data)
+(defn describe
+  "Describe errors from validating input data following the rules defined at model with identifier k"
+  {:added "1.0"}
+  [k data]
+  (when-let [model (k @ctx-models*)]
+    (let [err (data->errors model data)
           grouped (group-by :key err)]
       grouped)))
