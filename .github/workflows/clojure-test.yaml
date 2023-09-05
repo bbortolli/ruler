@@ -3,7 +3,7 @@ name: Clojure Test
 on: [push, pull_request]
 
 jobs:
-  test:
+  clj-lein-test:
     runs-on: ubuntu-latest
 
     steps:
