@@ -39,7 +39,7 @@
 
 (defn- data->rule-errors [rule data]
   (let [keys (keys (dissoc rule :key))
-        validate-fn #(models/data-key-validation % rule data)]
+        validate-fn #(models/key-validation % rule data)]
     (remove nil? (map validate-fn keys))))
 
 (defn- data->errors [model data]
