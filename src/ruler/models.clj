@@ -111,7 +111,7 @@
   [k {:keys [key length]} data]
   (let [val  (get data key)
         val' (if (string? val) (count val) val)
-        err  (valid-limits? length length val')]
+        err  (not (valid-limits? length length val'))]
     (->err err key k)))
 
 (defmethod key-validation :contains
