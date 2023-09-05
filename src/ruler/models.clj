@@ -1,5 +1,8 @@
 (ns ruler.models)
 
+(defn ->validation-error [err k p]
+  (when err
+    {:key k :pred p}))
 (defmulti data-key-validation
   (fn [k _rule _data] k))
 
