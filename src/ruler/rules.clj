@@ -1,13 +1,19 @@
 (ns ruler.rules)
 
-;; defs
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Const definitions.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def Map clojure.lang.IPersistentMap)
 (def Vector clojure.lang.IPersistentVector)
 (def Regex java.util.regex.Pattern)
 (def allowed-rule-keys-req #{:key :type})
 (def allowed-types #{Integer Float Double String Boolean Map Vector})
 
-;; helpers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Helpers.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn- allowed-type? [type]
   (contains? allowed-types type))
 
@@ -21,7 +27,10 @@
 (defn- key-type-error [k text]
   (format "Expected type for '%s' is %s" k text))
 
-;; main
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Lookups.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (def key->fn
   {:key         keyword?
    :type        allowed-type?
@@ -49,6 +58,10 @@
    :min-length  "Integer"
    :max-length  "Integer"
    :contains    "Vector or Set"})
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Rules.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn- check-rule-fields [rule]
   (let [reqs (vec allowed-rule-keys-req)
