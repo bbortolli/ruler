@@ -1,28 +1,12 @@
-name: Clojure Test
-
+name: Main tests
 on: [push, pull_request]
 
 jobs:
-  clj-lein-test:
+  clj-lein-tests:
     runs-on: ubuntu-latest
-
+    container: clojure:openjdk-17-lein-buster
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Set up Java
-      uses: actions/setup-java@v3
-      with:
-        java-version: 'adopt@1'
-
-    - name: Install Leiningen
-      run: |
-        mkdir -p ~/.lein
-        echo '{:user {:plugins [[lein-ancient "0.7.0"]]}}' > ~/.lein/profiles.clj
-        sudo apt-get update
-        sudo apt-get install leiningen -y
-      env:
-        LEIN_ROOT: 1
-
-    - name: Run Lein Test
-      run: lein test
+      - uses: actions/checkout@v3
+      - run: apt update
+      - run: apt install -y rake
+      - run: lein test
