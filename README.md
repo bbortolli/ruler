@@ -62,7 +62,7 @@ See example:
 (defn your-program [args]
   ;; something ...
   (let [fake-db-result (select-something args)]
-    (ruler.core/valid? :model-test
+    (ruler.core/valid? :injection-test
       {:account "premium-account" :verification "0xABC#"}
       fake-db-result)))
 ```
