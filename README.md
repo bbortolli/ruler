@@ -69,7 +69,25 @@ See example:
 
 ### Describing validation
 ```clj
-(ruler.core/describe)
+(ruler.core/defmodel
+  :model-test
+  [{:key :name :type String :req true :min-length 2 :max-length 10}
+   {:key :document :type String :req true :format #"\d{8}"}])
+
+;; Missing required keys
+(ruler.core/describe :model-test {})
+=> {:name [:req] :document [:req]}
+
+;; Invalid type and format
+(ruler.core/describe :model-test {:name 123 :document "aX1!-a@"})
+=> {:name [:type] :document [:format]}
+
+;; Invalid length
+(ruler.core/describe :model-test {:name "fz" :document "11112222"})
+=> {:name [:min-length]}
+
+(ruler.core/describe :model-test {:name "fuzzyfuzzyxd" :document "11112222"})
+=> {:name [:max-length]}
 ```
 
 ## License
