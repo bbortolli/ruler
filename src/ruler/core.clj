@@ -37,24 +37,25 @@
 ;; Internal implementations.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- data->rule-errors [rule data]
+(defn- data->rule-errors [rule data injection]
   (let [keys (keys (dissoc rule :key))
-        validate-fn #(models/key-validation % rule data)]
+        data' (if (map? injection) (assoc data :ruler/injection injection) data)
+        validate-fn #(models/key-validation % rule data')]
     (remove nil? (map validate-fn keys))))
 
-(defn- data->errors [model data]
-  (let [validate-fn #(data->rule-errors % data)]
+(defn- data->errors [model data injection]
+  (let [validate-fn #(data->rule-errors % data injection)]
     (remove nil? (flatten (map validate-fn model)))))
 
-(defn- data->valid-model? [model data]
-  (let [errors (data->errors model data)]
+(defn- data->valid-model? [model data injection]
+  (let [errors (data->errors model data injection)]
     (empty? errors)))
 
-(defn validate* [model data]
-  (data->valid-model? model data))
+(defn validate* [model data injection]
+  (data->valid-model? model data injection))
 
-(defn describe* [model data]
-  (let [err (data->errors model data)
+(defn describe* [model data injection]
+  (let [err (data->errors model data injection)
         grouped (group-by :key err)
         preds-reducer (fn [a k v]
                         (assoc a k (mapv :pred v)))]
@@ -76,13 +77,17 @@
 (defn valid?
   "Validate input data following the rules defined at model with identifier k"
   {:added "1.0"}
-  [k data]
-  (when-let [model (k @ctx-models*)]
-    (validate* model data)))
+  ([k data]
+   (valid? k data nil))
+  ([k data injection]
+   (when-let [model (k @ctx-models*)]
+     (validate* model data injection))))
 
 (defn describe
   "Describe errors from validating input data following the rules defined at model with identifier k"
   {:added "1.0"}
-  [k data]
+  ([k data]
+   (describe k data nil))
+  ([k data injection]
   (when-let [model (k @ctx-models*)]
-    (describe* model data)))
+    (describe* model data injection))))
