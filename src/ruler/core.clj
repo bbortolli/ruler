@@ -53,6 +53,13 @@
 (defn validate* [model data]
   (data->valid-model? model data))
 
+(defn describe* [model data]
+  (let [err (data->errors model data)
+        grouped (group-by :key err)
+        preds-reducer (fn [a k v]
+                        (assoc a k (mapv :pred v)))]
+    (reduce-kv preds-reducer {} grouped)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public api.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -78,6 +85,4 @@
   {:added "1.0"}
   [k data]
   (when-let [model (k @ctx-models*)]
-    (let [err (data->errors model data)
-          grouped (group-by :key err)]
-      grouped)))
+    (describe* model data)))

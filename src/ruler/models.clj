@@ -1,26 +1,45 @@
-(ns ruler.models)
+(ns ^:no-doc ruler.models)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Const definitions.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defonce keys-req #{:req :req-depends :req-fn})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn type->types [i]
+(defn- type->types [i]
   (cond
     (= Integer i)
     #{Integer Long Short Byte}
     :else
     #{i}))
 
-(defn ->err [err k p]
+(defn- ->err [err k p]
   (when err
     {:key k :pred p}))
+
+(defn- req-key? [k]
+  (contains? keys-req k))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Models.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmulti key-validation
-  (fn [k _rule _data] k))
+(defn key-dispatcher [k {:keys [key]} data]
+  (let [k-req? (req-key? k)
+        val? (some? (get data key))]
+    (cond
+      k-req? k
+      val?   k
+      :else  :default)))
+
+(defmulti key-validation key-dispatcher)
+
+(defmethod key-validation :default [_ _ _]
+  nil)
 
 (defmethod key-validation :type
   [k {:keys [key type]} data]
@@ -52,14 +71,14 @@
 (defn- valid-limits?
   "Verify if val is between max and min (max >= val >= min)."
   [min max val]
-  (not (>= max val min)))
+  (>= max val min))
 
 (defmethod key-validation :min
   [k {:keys [key min]} data]
   (when-let [val (get data key)]
     (when (number? val)
       (let [max Double/POSITIVE_INFINITY
-            err (valid-limits? min max val)]
+            err (not (valid-limits? min max val))]
         (->err err key k)))))
 
 (defmethod key-validation :max
@@ -67,7 +86,7 @@
   (when-let [val (get data key)]
     (when (number? val)
       (let [min Double/NEGATIVE_INFINITY
-            err (valid-limits? min max val)]
+            err (not (valid-limits? min max val))]
         (->err err key k)))))
 
 (defmethod key-validation :min-length
@@ -75,8 +94,8 @@
   (when-let [val (get data key)]
     (when (string? val)
       (let [max Integer/MAX_VALUE
-            length (count (get data key))
-            err (valid-limits? min-length max length)]
+            length (count val)
+            err (not (valid-limits? min-length max length))]
         (->err err key k)))))
 
 (defmethod key-validation :max-length
@@ -84,15 +103,15 @@
   (when-let [val (get data key)]
     (when (string? val)
       (let [min -1
-            length (count (get data key))
-            err (valid-limits? min max-length length)]
+            length (count val)
+            err (not (valid-limits? min max-length length))]
         (->err err key k)))))
 
 (defmethod key-validation :length
   [k {:keys [key length]} data]
   (let [val  (get data key)
         val' (if (string? val) (count val) val)
-        err  (valid-limits? length length val')]
+        err  (not (valid-limits? length length val'))]
     (->err err key k)))
 
 (defmethod key-validation :contains

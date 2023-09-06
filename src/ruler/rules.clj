@@ -1,4 +1,4 @@
-(ns ruler.rules)
+(ns ^:no-doc ruler.rules)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Const definitions.
