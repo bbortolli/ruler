@@ -39,7 +39,7 @@
 
 (defn- data->rule-errors [rule data injection]
   (let [keys (keys (dissoc rule :key))
-        data' (if (map? injection) (assoc data :ruler/injection injection) data)
+        data' (if injection (assoc data :ruler/injection injection) data)
         validate-fn #(models/key-validation % rule data')]
     (remove nil? (map validate-fn keys))))
 
