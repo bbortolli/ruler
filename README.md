@@ -53,8 +53,8 @@ See example:
 
 (ruler.core/defmodel
   :injection-test
-  [{:key :account :type String :req true :length 128}
-   {:key :verification :req-fn custom-validation}])
+  [{:key :account :type String :req true}
+   {:key :verification :type String :format #"[0-9]{1}x[A-Z]{3}#" :req-fn custom-validation}])
 
 (defn select-something [args]
   {:account-type "premium"})
@@ -63,7 +63,7 @@ See example:
   ;; something ...
   (let [fake-db-result (select-something args)]
     (ruler.core/valid? :model-test
-      {:name "Foo" :document "12341234" :document-code 11 :age 22}
+      {:account "premium-account" :verification "0xABC#"}
       fake-db-result)))
 ```
 
