@@ -1,4 +1,4 @@
-# Introduction to ruler
+# Introduction to rules
 
 ## Rule
 
