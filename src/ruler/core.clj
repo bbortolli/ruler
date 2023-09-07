@@ -6,9 +6,9 @@
 ;; Const definitions.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def allowed-config-keys #{:required-msg :invalid-type-msg})
+(def ^:private allowed-config-keys #{:required-msg :invalid-type-msg})
 
-(def initial-config
+(def ^:private initial-config
   {:required-msg #(format "Required field: %s" (:key %))
    :invalid-type-msg #(format "Invalid type for field: %s" (:key %))})
 
@@ -16,15 +16,15 @@
 ;; Helpers.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn valid-config? [k _value]
+(defn ^:no-doc valid-config? [k _value]
   (contains? allowed-config-keys k))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Context manipulation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defonce ctx-models* (atom {}))
-(defonce ctx-config* (atom initial-config))
+(defonce ^:private ctx-models* (atom {}))
+(defonce ^:private ctx-config* (atom initial-config))
 
 (defn- create-model! [k m]
   (swap! ctx-models* assoc k m))
@@ -51,10 +51,10 @@
   (let [errors (data->errors model data injection)]
     (empty? errors)))
 
-(defn validate* [model data injection]
+(defn ^:no-doc validate* [model data injection]
   (data->valid-model? model data injection))
 
-(defn describe* [model data injection]
+(defn ^:no-doc describe* [model data injection]
   (let [err (data->errors model data injection)
         grouped (group-by :key err)
         preds-reducer (fn [a k v]
