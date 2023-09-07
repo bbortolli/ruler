@@ -7,7 +7,7 @@
 (def Map clojure.lang.IPersistentMap)
 (def Vector clojure.lang.IPersistentVector)
 (def Regex java.util.regex.Pattern)
-(def allowed-rule-keys-req #{:key :type})
+(def allowed-required-rule-keys #{:key :type})
 (def allowed-types #{Integer Float Double String Boolean Map Vector})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -63,12 +63,16 @@
 ;; Rules.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn- check-rule-fields [rule]
-  (let [reqs (vec allowed-rule-keys-req)
+(defn- check-rule-fields
+  "Verify if the rule has pairs of key-value that are required, and each value is not nil."
+  [rule]
+  (let [reqs (vec allowed-required-rule-keys)
         req-vals (map (fn req-vals-map [k] (k rule)) reqs)]
     (assert (every? some? req-vals) "Missing required keys for rule.")))
 
-(defn- check-rule-vals* [key rule]
+(defn- check-rule-vals*
+  "Verify if the key-value pair in the rule have value of the expected types."
+  [key rule]
   (if-let [func (key key->fn)]
     (let [val (key rule)
           text (key key->type-text)]

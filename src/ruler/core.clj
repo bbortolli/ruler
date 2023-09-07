@@ -6,9 +6,9 @@
 ;; Const definitions.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def allowed-config-keys #{:required-msg :invalid-type-msg})
+(def ^:private allowed-config-keys #{:required-msg :invalid-type-msg})
 
-(def initial-config
+(def ^:private initial-config
   {:required-msg #(format "Required field: %s" (:key %))
    :invalid-type-msg #(format "Invalid type for field: %s" (:key %))})
 
@@ -16,15 +16,15 @@
 ;; Helpers.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn valid-config? [k _value]
+(defn ^:no-doc valid-config? [k _value]
   (contains? allowed-config-keys k))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Context manipulation.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defonce ctx-models* (atom {}))
-(defonce ctx-config* (atom initial-config))
+(defonce ^:private ctx-models* (atom {}))
+(defonce ^:private ctx-config* (atom initial-config))
 
 (defn- create-model! [k m]
   (swap! ctx-models* assoc k m))
@@ -51,10 +51,10 @@
   (let [errors (data->errors model data injection)]
     (empty? errors)))
 
-(defn validate* [model data injection]
+(defn ^:no-doc validate* [model data injection]
   (data->valid-model? model data injection))
 
-(defn describe* [model data injection]
+(defn ^:no-doc describe* [model data injection]
   (let [err (data->errors model data injection)
         grouped (group-by :key err)
         preds-reducer (fn [a k v]
@@ -66,7 +66,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn defmodel
-  "Define a new model rules with identifier kw to the context"
+  "Define a new model with a set of rules identified as 'kw'."
   {:added "1.0"}
   [kw model]
   (assert (keyword? kw) "Model identifier should be a keyword.")
@@ -75,7 +75,7 @@
   (create-model! kw model))
 
 (defn valid?
-  "Validate input data following the rules defined at model with identifier k"
+  "Validate input data following the rules defined in the model identified as 'k'."
   {:added "1.0"}
   ([k data]
    (valid? k data nil))
@@ -84,7 +84,8 @@
      (validate* model data injection))))
 
 (defn describe
-  "Describe errors from validating input data following the rules defined at model with identifier k"
+  "Describe errors encountered when validating input data
+    according to the rules defined in the model identified as 'k'."
   {:added "1.0"}
   ([k data]
    (describe k data nil))

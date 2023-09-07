@@ -28,15 +28,24 @@
 ;; Models.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defn key-dispatcher [k {:keys [key]} data]
+(defn key-dispatcher
+  "Receive a key-rule to validate the rule and data.
+   If the key-rule is one of the 'required' rules, dispatch the key;
+   Else, if there is a value for the field defined in the rule, dispatch the key;
+   Otherwise, dispatch for the :default where no error is returned.
+   This behavior is designed to avoid validating more than 'required' rules on fields that don't have a value."
+  [k {:keys [key]} data]
   (let [k-req? (req-key? k)
-        val? (some? (get data key))]
-    (cond
-      k-req? k
-      val?   k
-      :else  :default)))
+        val? (some? (get data key))
+        dispatch? (or k-req? val?)]
+    (if dispatch? k
+        :default)))
 
-(defmulti key-validation key-dispatcher)
+(defmulti key-validation
+  "Validates each rule key defined in the rule map.
+   Get the field :key from the data map and check if it is required;
+   Check for types and other existing rules."
+  key-dispatcher)
 
 (defmethod key-validation :default [_ _ _]
   nil)
@@ -69,7 +78,7 @@
     (->err err key k)))
 
 (defn- valid-limits?
-  "Verify if val is between max and min (max >= val >= min)."
+  "Verify if 'val' is within the range of 'min' to 'max' (min <= val <= max)."
   [min max val]
   (>= max val min))
 
