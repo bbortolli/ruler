@@ -66,7 +66,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn defmodel
-  "Define a new model rules with identifier kw to the context"
+  "Define a new model with a set of rules identified as 'kw'."
   {:added "1.0"}
   [kw model]
   (assert (keyword? kw) "Model identifier should be a keyword.")
@@ -75,7 +75,7 @@
   (create-model! kw model))
 
 (defn valid?
-  "Validate input data following the rules defined at model with identifier k"
+  "Validate input data following the rules defined in the model identified as 'k'."
   {:added "1.0"}
   ([k data]
    (valid? k data nil))
@@ -84,7 +84,8 @@
      (validate* model data injection))))
 
 (defn describe
-  "Describe errors from validating input data following the rules defined at model with identifier k"
+  "Describe errors encountered when validating input data
+    according to the rules defined in the model identified as 'k'."
   {:added "1.0"}
   ([k data]
    (describe k data nil))
