@@ -1,0 +1,11 @@
+name: Check Cljdoc
+on: [pull_request]
+jobs:
+  check-cljdoc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build target/<the lib>*.jar
+        run: clojure -T:build jar
+      - name: CljDoc Check
+        uses: cljdoc/cljdoc-check-action@v1
