@@ -6,7 +6,7 @@ A Clojure library designed to validate input data defining map rules.
 ## Usage
 
 ### Defining a model, a set of rules
-See [rules](./doc/rules.md) for more info
+See [rules](./doc/02-rules.md) for more info
 
 In the example a model with identifier :model-test is being created
 ```clj
