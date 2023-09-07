@@ -1,5 +1,10 @@
 # Change Log
-All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
-## [Unreleased]
- I'm new :)
+## [0.1.0] - 2023-09-07
+
+### First release
+Release with initial settings and functionalities
+
+- Rule checks.
+- Model definitions.
+- Data validation.
