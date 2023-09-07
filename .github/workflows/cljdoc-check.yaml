@@ -20,7 +20,8 @@ jobs:
           cli: 'latest'
 
       - name: Build
-        run: lein uberjar
+        run: |
+          lein uberjar && rm ./target/ruler-0.1.0-SNAPSHOT-standalone.jar
 
       - name: CljDoc Check
         uses: cljdoc/cljdoc-check-action@v0.0.3
