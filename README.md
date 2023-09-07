@@ -1,5 +1,8 @@
 
-# clj-ruler ![Test](https://github.com/bbortolli/clj-ruler/actions/workflows/clojure-test.yaml/badge.svg)
+![Test](https://github.com/bbortolli/clj-ruler/actions/workflows/clojure-test.yaml/badge.svg) [![Clojars Project](https://img.shields.io/clojars/v/org.clojars.bbortolli/ruler.svg)](https://clojars.org/org.clojars.bbortolli/ruler)
+
+
+# Ruler
 
 A Clojure library designed to validate input data defining map rules.
 
@@ -94,4 +97,4 @@ See example:
 
 Eclipse Public License 2.0
 
-Copyright © 2023 FIXME
+Copyright © 2023
