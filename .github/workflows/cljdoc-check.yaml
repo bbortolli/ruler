@@ -16,10 +16,11 @@ jobs:
       - name: Install clojure tools
         uses: DeLaGuardo/setup-clojure@12.1
         with:
+          lein: 'latest'
           cli: 'latest'
 
-      - name: Build target/<the lib>*.jar
-        run: clojure -T:build jar
+      - name: Build
+        run: lein uberjar
 
       - name: CljDoc Check
         uses: cljdoc/cljdoc-check-action@v0.0.3
