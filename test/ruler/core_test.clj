@@ -25,6 +25,7 @@
   (assoc test-model :opts {:extra-keys? false}))
 
 (deftest validate*-test
+
   (let [db-injection {:account-type "premium"}]
     (testing "Valid models"
       (is (true? (core/validate* test-model {:number 1 :string "ab"} nil)))
@@ -32,6 +33,7 @@
       (is (true? (core/validate* test-model {:number 10 :string "abcd" :opt "si"} nil)))
       (is (true? (core/validate* test-model {:number 7 :string "abcd" :card "1234-1234-1234-1234"} db-injection)))
       (is (true? (core/validate* test-model {:number 10 :string "abcd" :opt "si" :extra "ok"} nil))))
+
     (testing "Invalid models"
       (is (false? (core/validate* test-model {:number "a"} nil)) "Invalid type for :number")
       (is (false? (core/validate* test-model {:number -9} nil)) "Invalid min value for :number")
@@ -45,6 +47,7 @@
       (is (false? (core/validate* test-model-with-opts {:number 6 :string "ab" :extra 12345} nil)) "Extra key"))))
 
 (deftest describe*-test
+
   (testing "Described valid models"
     (is (= {:number [:req] :string [:req-depends]} (core/describe* test-model {} nil)) "number required")
     (is (= {:number [:type] :string [:req-depends]} (core/describe* test-model {:number "123"} nil)) "invalid number type")
@@ -54,4 +57,5 @@
     (is (= {:string [:min-length]} (core/describe* test-model {:number 7 :string "1"} nil)) "invalid min-length")
     (is (= {:string [:max-length]} (core/describe* test-model {:number 7 :string "1234567890"} nil)) "invalid max-length")
     (is (= {:ruler/extra-keys? [:extra]} (core/describe* test-model-with-opts {:number 6 :string "ab" :extra 12345} nil)) "invalid extra key"))
+
   (testing "Described invalid models"))
