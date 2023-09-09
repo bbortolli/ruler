@@ -17,3 +17,16 @@ Model is a collection of rules identified by a keyword.
    {:key :age :type Integer :req true :min 12}
    {:key :driver-license :type String :req-fn (fn [data] (>= (:age data) 21))}])
 ```
+
+## Opts
+A config map used to define additional validation to data map
+
+| Param       | Type       | Description                           |
+| :---------- | :--------- | :---------------------------------- |
+| `:extra-keys?` | `boolean` | If false, do not allow extra fields in data map (default is true) |
+
+### Examples
+```clj
+;; In the next page, you will find examples for practical use.
+(def my-opts {:extra-keys? false})
+```

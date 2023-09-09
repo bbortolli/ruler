@@ -14,10 +14,26 @@ In the example a model with identifier :model-test is being created
    {:key :driver-license :type String :req-fn (fn [data] (>= (:age data) 21))}])
 ```
 
+## You can define model with opts
+As 3rd param for defmodel you can pass a opts map.
+
+See [models](./03-models.md) for more info
+```clj
+(ruler.core/defmodel
+  :model-test-opts
+  [{:key :age :type Integer :req true :min 12}]
+   {:extra-keys? false})
+```
+
+### Alternatively, opts can be setted by global configs
+```clj
+(ruler.core/set-config! :global-opts {:extra-keys? false})
+```
+
 ## Validating a model
 To validate a model you should call this function 'valid?'.
 
-Here, a valid data:
+Here, a valid data for :model-test:
 ```clj
 (ruler.core/valid?
   :model-test
@@ -32,6 +48,36 @@ Now, a invalid data. Missing required :driver-license because age is >= 21.
 (ruler.core/valid?
   :model-test
   {:name "Foo" :document "12341234" :document-code 11 :age 22})
+
+=> false
+```
+
+Here a valid data with extra keys for :model-test
+```clj
+(ruler.core/valid?
+  :model-test
+  {:name "Foo" :document "12341234" :document-code 11 :age 22 :bla "ble"})
+
+=> true
+```
+
+Invalid data for :model-test-opts
+```clj
+(ruler.core/valid?
+  :model-test-opts
+  {:age 20 :bla "ble"})
+
+=> false
+```
+
+Setting global opts :extra-keys? to true
+```clj
+(ruler.core/set-config! :global-opts {:extra-keys? true})
+
+;; still false because model opts have preference over globals
+(ruler.core/valid?
+  :model-test-opts
+  {:age 20 :bla "ble"})
 
 => false
 ```
