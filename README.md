@@ -1,5 +1,8 @@
 
-![Test](https://github.com/bbortolli/clj-ruler/actions/workflows/clojure-test.yaml/badge.svg) [![Clojars Project](https://img.shields.io/clojars/v/org.clojars.bbortolli/ruler.svg)](https://clojars.org/org.clojars.bbortolli/ruler)
+[![Clojars Project](https://img.shields.io/clojars/v/org.clojars.bbortolli/ruler.svg)](https://clojars.org/org.clojars.bbortolli/ruler)
+
+![Test](https://github.com/bbortolli/clj-ruler/actions/workflows/clojure-test.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/bbortolli/ruler/graph/badge.svg?token=YY07JCC9RF)](https://codecov.io/gh/bbortolli/ruler)
 
 
 # Ruler
