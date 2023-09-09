@@ -25,7 +25,7 @@
   (contains? keys-req k))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Models.
+;; Keys models validations.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn key-dispatcher
@@ -141,3 +141,20 @@
   (let [val (get data key)
         err (not (format-fn val))]
     (->err err key k)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Models opts.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmulti opt-key-validation
+  (fn [opt-kw _model _opts _data]
+    opt-kw))
+
+(defmethod opt-key-validation :extra-keys?
+  [k model opts data]
+  (when (false? (k opts))
+    (let [model-keys (map :key model)
+          rest-keys (apply dissoc data model-keys)
+          have-rest-keys? (pos? (count (keys rest-keys)))]
+      (when have-rest-keys?
+        {:ruler/extra-keys? (vec (keys rest-keys))}))))
