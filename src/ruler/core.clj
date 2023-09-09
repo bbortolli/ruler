@@ -30,7 +30,7 @@
 (defn- create-model! [k m]
   (swap! ctx-models* assoc k m))
 
-(defn- set-config! [k value]
+(defn set-config! [k value]
   (when (valid-config? k value)
     (swap! ctx-config* assoc k value)))
 
