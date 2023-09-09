@@ -1,10 +1,10 @@
-name: lein-test
+name: lein-coverage
 
 on: [pull_request]
 
 jobs:
 
-  clj-lein-tests:
+  cloverage:
 
     strategy:
       matrix:
@@ -48,5 +48,10 @@ jobs:
           # key: cljdeps-${{ hashFiles('build.boot') }}
           restore-keys: cljdeps-
 
-      - name: Execute tests
-        run: lein test
+      - name: Execute coverage test
+        run: lein cloverage --codecov
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
