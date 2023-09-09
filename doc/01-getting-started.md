@@ -1,6 +1,6 @@
 # Getting Started
 
-## Usage
+## Installation
 
 Leiningen
 ```clj

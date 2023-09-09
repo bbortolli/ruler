@@ -31,7 +31,10 @@
 (def test-data2
   {:test 12})
 
+(def test-model [{:key :name :type String :required true}])
+
 (deftest key-validation-test
+
   (testing "Valid data value"
     (is (nil? (models/key-validation :type test-rule test-data )) ":type")
     (is (nil? (models/key-validation :req test-rule test-data )) ":req")
@@ -45,6 +48,7 @@
     (is (nil? (models/key-validation :contains test-rule test-data )) ":contains")
     (is (nil? (models/key-validation :format test-rule test-data )) ":format")
     (is (nil? (models/key-validation :format-fn test-rule test-data )) ":format-fn"))
+
   (testing "Invalid data value"
     (is (= {:key :test :pred :type} (models/key-validation :type test-rule {:test 1.1})) ":type")
     (is (= {:key :test :pred :req} (models/key-validation :req test-rule {})) ":req")
@@ -58,3 +62,14 @@
     (is (= {:key :test :pred :contains} (models/key-validation :contains test-rule {:test "bli"})) ":contains")
     (is (= {:key :test :pred :format} (models/key-validation :format test-rule {:test "blu"})) ":format")
     (is (= {:key :test :pred :format-fn} (models/key-validation :format-fn (assoc test-rule :format-fn (fn [_] false)) {:test "teste"})) ":format-fn")))
+
+(deftest opt-key-validation-test
+
+  (testing "extra-keys? = true"
+    (is (nil? (models/opt-key-validation :extra-keys? test-model {:extra-keys? true} {:name "Hi" :inv 1}))))
+
+  (testing "extra-keys? = false"
+    (is (= {:ruler/extra-keys? [:bla]}
+           (models/opt-key-validation :extra-keys? test-model {:extra-keys? false} {:name "Hi" :bla 1})))
+    (is (= {:ruler/extra-keys? [:bla :ble]}
+           (models/opt-key-validation :extra-keys? test-model {:extra-keys? false} {:name "Hi" :bla 1 :ble 2})))))
