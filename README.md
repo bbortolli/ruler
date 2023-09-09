@@ -3,7 +3,6 @@
 
 
 # Ruler
-
 A Clojure library designed to validate input data defining map rules.
 
 ## For usage, see topics
