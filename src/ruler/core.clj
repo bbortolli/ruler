@@ -6,11 +6,12 @@
 ;; Const definitions.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:private allowed-config-keys #{:required-msg :invalid-type-msg})
+(def ^:private allowed-config-keys #{:required-msg :invalid-type-msg :global-opts})
 
 (def ^:private initial-config
   {:required-msg #(format "Required field: %s" (:key %))
-   :invalid-type-msg #(format "Invalid type for field: %s" (:key %))})
+   :invalid-type-msg #(format "Invalid type for field: %s" (:key %))
+   :global-opts {}})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers.
@@ -32,6 +33,11 @@
 (defn- set-config! [k value]
   (when (valid-config? k value)
     (swap! ctx-config* assoc k value)))
+
+(defn- merge-opts [model]
+  (if-let [global-opts (:global-opts @ctx-config*)]
+    (update model :opts merge global-opts)
+    model))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal implementations.
@@ -56,7 +62,8 @@
      :opts-errors (apply merge opts-errors)}))
 
 (defn- data->valid-model? [model data injection]
-  (let [errors (data->errors model data injection)]
+  (let [model' (merge-opts model)
+        errors (data->errors model' data injection)]
     (and (empty? (:rule-errors errors))
          (empty? (:opts-errors errors)))))
 
@@ -64,7 +71,8 @@
   (data->valid-model? model data injection))
 
 (defn ^:no-doc describe* [model data injection]
-  (let [err (data->errors model data injection)
+  (let [model' (merge-opts model)
+        err (data->errors model' data injection)
         rule-errors (:rule-errors err)
         opts-errors (:opts-errors err)
         grouped (group-by :key rule-errors)

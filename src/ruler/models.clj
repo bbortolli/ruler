@@ -150,11 +150,15 @@
   (fn [opt-kw _model _opts _data]
     opt-kw))
 
+(defmethod opt-key-validation :default
+  [_ _ _ _]
+  nil)
+
 (defmethod opt-key-validation :extra-keys?
   [k model opts data]
   (when (false? (k opts))
     (let [model-keys (map :key model)
-          rest-keys (apply dissoc data model-keys)
-          have-rest-keys? (pos? (count (keys rest-keys)))]
-      (when have-rest-keys?
-        {:ruler/extra-keys? (vec (keys rest-keys))}))))
+          rest-map (apply dissoc data model-keys)
+          rest-keys (keys rest-map)]
+      (when (seq rest-keys)
+        {:ruler/extra-keys? (vec rest-keys)}))))
