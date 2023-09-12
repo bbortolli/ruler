@@ -19,8 +19,10 @@ Rule is data. A map with keys and values which defines a field.
 | Param       | Type       | Description                           |
 | :---------- | :--------- | :---------------------------------- |
 | `:req` | `boolean` | If the field is required or not |
-| `:req-depends` | `collection` | A collection of other fields that |
+| `:req-depends` | `collection` | A collection of fields that implies to be required |
 | `:req-fn` | `function` | Custom function to define if required |
+| `:excluded` | `collection` | A collection of fields mutually excluded by |
+| `:excluded-fn` | `function` | Custom function to make this invalidated by |
 | `:name` | `string` | Custom name to the field |
 | `:min` | `number` | Minimum value for a number |
 | `:max` | `number` | Max value for a number |
@@ -30,7 +32,6 @@ Rule is data. A map with keys and values which defines a field.
 | `:contains` | `vector or set` | Set of values allowed to the field |
 | `:format` | `regex` | A regex to validate value format |
 | `:format-fn` | `function` | Custom function to validate the value |
-
 
 ### Explaining some keys
 
@@ -55,6 +56,33 @@ Example: Required field :driver-license only if :age is >= 21
 (def my-rules2
   [{:key :age :type Integer :req false}
    {:key :driver-license :type String :req-fn custom-validator}])
+```
+
+Example: :passport: and :driver-license mutually exclusive
+```clj
+(def my-rules3
+  [{:key :age :type Integer :req false}
+   {:key :passport :type String :excluded [:driver-license]}
+   {:key :driver-license :type String :excluded [:passport]}])
+
+```
+Example: :driver-license should not be present if age < 21
+```clj
+(def my-rules3
+  [{:key :age :type Integer :req true}
+   {:key :driver-license :type String :excluded-fn (fn [data] (< (:age data) 21))}])
+
+;; Another way is defining a function to be used at required-fn and used
+(defn maiority-age? [data]
+  (>= (:age data) 21))
+
+;; define its negative
+(def not-maiority-age? (comp not maiority-age?)
+
+;; Now it is required if age >= 21 and invalid if not
+(def my-rules3
+  [{:key :age :type Integer :req true}
+   {:key :driver-license :type String :req-fn maiority-age? :excluded-fn not-maiority-age?}])
 ```
 
 ### Examples
