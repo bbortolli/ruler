@@ -59,3 +59,53 @@
     (is (= {:ruler/extra-keys? [:extra]} (core/describe* test-model-with-opts {:number 6 :string "ab" :extra 12345} nil)) "invalid extra key"))
 
   (testing "Described invalid models"))
+
+(deftest core-public-api-test
+
+  (testing "Setting a config"
+    (is (= {:extra-keys? true}
+           (:global-opts (core/set-config! :global-opts {:extra-keys? true})))))
+
+  (testing "Defining valid models"
+    (is (= {:test {:model [{:key :text :type java.lang.String}] :opts nil}}
+           (core/defmodel :test [{:key :text :type String}])))
+    (is (= {:test {:model [{:key :text :type java.lang.String}] :opts {:extra-keys? true}}}
+           (core/defmodel :test [{:key :text :type String}] {:extra-keys? true}))))
+
+  (testing "Defining invalid models"
+    (is (thrown? java.lang.AssertionError (core/defmodel "not-a-keyword" [{:key :text :type String :req true}])))
+    (is (thrown? java.lang.AssertionError (core/defmodel :empty-rules [])))
+    (is (thrown? java.lang.AssertionError (core/defmodel :invalid-rules [{:key "text" :type []}]))))
+
+  (testing "Validating models without extra keys config"
+    (core/defmodel :test [{:key :text :type String :req true}])
+    (is (true? (core/valid? :test {:text "My String xD"})))
+    (is (true? (core/valid? :test {:text "My String xD" :another-key true})))
+    (is (false? (core/valid? :test {:not-text-key "My String xD"})))
+    (is (false? (core/valid? :test {}))))
+
+  (testing "Validating models with extra keys config"
+    (core/set-config! :global-opts {:extra-keys? false})
+    (core/defmodel :test [{:key :text :type String :req true}])
+    (is (true? (core/valid? :test {:text "My String xD"})))
+    (is (true? (core/valid? :test {:text "My String xD"} {:injection "data"})))
+    (is (false? (core/valid? :test {:text "My String xD" :another-key true})))
+    (is (false? (core/valid? :test {:text "My String xD" :another-key true} {:injection "data"}))))
+
+  (testing "Validating not defined model"
+    (is (nil? (core/valid? :i-dont-exist {})))
+    (is (nil? (core/valid? :i-dont-exist {:text 1})))
+    (is (nil? (core/valid? :i-dont-exist {:text "My String xD"}))))
+
+  (testing "Describing models"
+    (core/defmodel :test [{:key :text :type String :req true}
+                          {:key :number :type Integer}
+                          {:key :from-fn :type String :req-fn (fn [data] (true? (some-> data :ruler/injection :value)))}])
+
+    (is (nil? (core/describe :test {:text "1" :number 10})))
+    (is (nil? (core/describe :test {:text "1" :number 10} {:value false})))
+    (is (nil? (core/describe :test {:text "1" :number 10 :from-fn "im-here"} {:value true})))
+    (is (= {:text [:type] :number [:type]}
+           (core/describe :test {:text 1 :number "not-a-number"})))
+    (is (= {:from-fn [:req-fn]}
+           (core/describe :test {:text "1" :number 10} {:value true})))))

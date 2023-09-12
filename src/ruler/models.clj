@@ -77,6 +77,21 @@
         err (and req? (nil? (get data key)))]
     (->err err key k)))
 
+(defmethod key-validation :excluded
+  [k {:keys [key excluded]} data]
+  (let [val (get data key)
+        excluded-vals (vals (select-keys data excluded))
+        excluded? (some some? excluded-vals)
+        err (and val excluded?)]
+    (->err err key k)))
+
+(defmethod key-validation :excluded-fn
+  [k {:keys [key excluded-fn]} data]
+  (let [val (get data key)
+        excluded? (excluded-fn data)
+        err (and val excluded?)]
+    (->err err key k)))
+
 (defn- valid-limits?
   "Verify if 'val' is within the range of 'min' to 'max' (min <= val <= max)."
   [min max val]

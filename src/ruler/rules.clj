@@ -37,6 +37,8 @@
    :req         boolean?
    :req-depends coll?
    :req-fn      fn?
+   :excluded    coll?
+   :excluded-fn fn?
    :name        string?
    :min         number?
    :max         number?
@@ -52,12 +54,16 @@
    :req         "Boolean"
    :req-depends "Collection"
    :req-fn      "Function"
+   :excluded    "Collection"
+   :excluded-fn "Function"
    :name        "String"
    :min         "Number"
    :max         "Number"
    :min-length  "Integer"
    :max-length  "Integer"
-   :contains    "Vector or Set"})
+   :contains    "Vector or Set"
+   :format      "Regex"
+   :format-fn   "Function"})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rules.
