@@ -1,6 +1,7 @@
 (ns ruler.core
   (:require [ruler.rules :as rules]
-            [ruler.models :as models]))
+            [ruler.models :as models]
+            [ruler.messages :as messages]))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Const definitions.
@@ -80,6 +81,12 @@
                         (assoc a k (mapv :pred v)))]
     (reduce-kv preds-reducer opts-errors grouped)))
 
+(defn ^:no-doc messager* [model [field pred-errors] data]
+  (let [field-rule? (fn [rule] (= field (:key rule)))
+        current-rule (first (filter field-rule? (:model model)))]
+    (map #(messages/pred-msg % current-rule data) pred-errors)))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Public api.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -113,3 +120,14 @@
   ([k data injection]
   (when-let [model (k @ctx-models*)]
     (describe* model data injection))))
+
+(defn messages
+  "Return a human readable errors."
+  {:added "1.0"}
+  ([k data]
+   (messages k data nil))
+  ([k data injection]
+   (when-let [model (k @ctx-models*)]
+     (let [errors (describe* model data injection)
+           messager-fn #(messager* model % data)]
+       (flatten (map messager-fn errors))))))
