@@ -147,7 +147,7 @@
 (defmethod key-validation :format
   [k {:keys [key format]} data]
   (let [val (get data key)
-        matches? (re-matches format val)
+        matches? (or (not (string? val)) (re-matches format val))
         err (not matches?)]
     (->err err key k)))
 
