@@ -13,7 +13,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defmulti pred-msg
-  (fn [pred _rule _data] pred))
+  (fn [pred _rule _data]
+    pred))
 
 (defmethod pred-msg :default
   [_pred _rule _data]
