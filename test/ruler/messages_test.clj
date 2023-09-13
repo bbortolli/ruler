@@ -5,6 +5,7 @@
 
 (deftest pred-msg-test
   (testing "Returning messages for every :pred"
+    (is (nil? (messages/pred-msg :blablabla {} {})))
     (is (= "Invalid type for field :f. Expected Integer, received String."
            (messages/pred-msg :type        {:key :f :type Integer}              {:f "123"})))
     (is (= "Missing required field :f."
