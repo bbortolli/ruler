@@ -4,6 +4,10 @@
    [ruler.rules :as rules]))
 
 (deftest check-rule-test
+
+  (testing "Invalid rule key"
+    (is (thrown? java.lang.AssertionError (rules/check-rule {:key :name :type String :wut String})) "Invalid rule key"))
+
   (testing "Valid rules"
     (is (nil? (rules/check-rule {:key :name :type String})) "Only required fields")
     (is (nil? (rules/check-rule {:key :name :type String :req false})) "With optional field: req")

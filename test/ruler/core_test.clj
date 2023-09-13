@@ -48,7 +48,7 @@
 
 (deftest describe*-test
 
-  (testing "Described valid models"
+  (testing "Describe valid models"
     (is (= {:number [:req] :string [:req-depends]} (core/describe* test-model {} nil)) "number required")
     (is (= {:number [:type] :string [:req-depends]} (core/describe* test-model {:number "123"} nil)) "invalid number type")
     (is (= {:number [:min] :string [:req-depends]} (core/describe* test-model {:number -1} nil)) "invalid number limit min")
@@ -59,6 +59,25 @@
     (is (= {:ruler/extra-keys? [:extra]} (core/describe* test-model-with-opts {:number 6 :string "ab" :extra 12345} nil)) "invalid extra key"))
 
   (testing "Described invalid models"))
+
+(deftest messager*-test
+  (testing "Error messages"
+    (is (= ["Missing required field :number."]
+           (core/messager* test-model [:number [:req]] {:number nil})))
+    (is (= ["Invalid type for field :number. Expected Integer, received String."]
+           (core/messager* test-model [:number [:type]] {:number "String"})))
+    (is (= ["Invalid minimun value for :number. Minimun is 1, received -10."]
+           (core/messager* test-model [:number [:min]] {:number -10})))
+    (is (= ["Invalid maximun value for :number. Maximun is 10, received 9999."]
+           (core/messager* test-model [:number [:max]] {:number 9999})))
+    (is (= ["Missing required field :string."]
+           (core/messager* test-model [:string [:req-depends]] {:number 2})))
+    (is (= ["Invalid type for field :string. Expected String, received Long."]
+           (core/messager* test-model [:string [:type]] {:number 2 :string 1})))
+    (is (= ["Invalid minimun length for :string. Minimun is 2, received 1."]
+           (core/messager* test-model [:string [:min-length]] {:number 2 :string "1"})))
+    (is (= ["Invalid maximun length for :string. Maximun is 4, received 7."]
+           (core/messager* test-model [:string [:max-length]] {:number 2 :string "7777777"})))))
 
 (deftest core-public-api-test
 
@@ -108,4 +127,20 @@
     (is (= {:text [:type] :number [:type]}
            (core/describe :test {:text 1 :number "not-a-number"})))
     (is (= {:from-fn [:req-fn]}
-           (core/describe :test {:text "1" :number 10} {:value true})))))
+           (core/describe :test {:text "1" :number 10} {:value true}))))
+
+  (testing "Human readable messages"
+    (core/defmodel :test [{:key :text :type String :req true :min-length 2 :max-length 5 :format #"\d{3}"}])
+    (is (nil? (core/messages :no-existe {:text "123"})))
+    (is (= []
+           (core/messages :test {:text "123"})))
+    (is (= ["Missing required field :text."]
+           (core/messages :test {})))
+    (is (= ["Invalid type for field :text. Expected String, received Long."]
+           (core/messages :test {:text 1})))
+    (is (= ["Invalid minimun length for :text. Minimun is 2, received 1."
+            "Invalid format for :text."]
+           (core/messages :test {:text "1"})))
+    (is (= ["Invalid maximun length for :text. Maximun is 5, received 9."
+            "Invalid format for :text."]
+           (core/messages :test {:text "abcdefghi"})))))
