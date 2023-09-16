@@ -7,12 +7,10 @@
 ;; Const definitions.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(def ^:private allowed-config-keys #{:required-msg :invalid-type-msg :global-opts})
+(def ^:private allowed-config-keys #{:global-opts :custom-messages})
 
 (def ^:private initial-config
-  {:required-msg #(format "Required field: %s" (:key %))
-   :invalid-type-msg #(format "Invalid type for field: %s" (:key %))
-   :global-opts {}})
+  {:global-opts {}})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Helpers.
@@ -83,8 +81,9 @@
 
 (defn ^:no-doc messager* [model [field pred-errors] data]
   (let [field-rule? (fn [rule] (= field (:key rule)))
-        current-rule (first (filter field-rule? (:model model)))]
-    (map #(messages/pred-msg % current-rule data) pred-errors)))
+        current-rule (first (filter field-rule? (:model model)))
+        cfgs (select-keys @ctx-config* [:custom-messages])]
+    (map #(messages/pred-msg % current-rule data cfgs) pred-errors)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

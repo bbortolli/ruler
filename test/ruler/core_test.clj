@@ -1,13 +1,25 @@
 (ns ruler.core-test
   (:require
-   [clojure.test :refer [deftest testing is]]
+   [clojure.test :refer [deftest testing is use-fixtures]]
    [ruler.core :as core]))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Fixtures
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn- clear-cfg
+  "Clear :custom-messages in ctx-config* before each test"
+  [f]
+  (core/set-config! :custom-messages nil)
+  (f))
+
+(use-fixtures :each clear-cfg)
 
 (deftest valid-config?-test
   (testing "Valid configs"
-    (is (true? (core/valid-config? :required-msg nil)))
-    (is (true? (core/valid-config? :invalid-type-msg nil))))
-  (testing "Valid configs"
+    (is (true? (core/valid-config? :custom-messages nil)))
+    (is (true? (core/valid-config? :global-opts nil))))
+  (testing "Invalid configs"
     (is (false? (core/valid-config? :invalid nil)))))
 
 (defn validator-with-injection [data]
@@ -66,17 +78,17 @@
            (core/messager* test-model [:number [:req]] {:number nil})))
     (is (= ["Invalid type for field :number. Expected Integer, received String."]
            (core/messager* test-model [:number [:type]] {:number "String"})))
-    (is (= ["Invalid minimun value for :number. Minimun is 1, received -10."]
+    (is (= ["Invalid minimum value for :number. Minimum is 1, received -10."]
            (core/messager* test-model [:number [:min]] {:number -10})))
-    (is (= ["Invalid maximun value for :number. Maximun is 10, received 9999."]
+    (is (= ["Invalid maximum value for :number. Maximum is 10, received 9999."]
            (core/messager* test-model [:number [:max]] {:number 9999})))
     (is (= ["Missing required field :string."]
            (core/messager* test-model [:string [:req-depends]] {:number 2})))
     (is (= ["Invalid type for field :string. Expected String, received Long."]
            (core/messager* test-model [:string [:type]] {:number 2 :string 1})))
-    (is (= ["Invalid minimun length for :string. Minimun is 2, received 1."]
+    (is (= ["Invalid minimum length for :string. Minimum is 2, received 1."]
            (core/messager* test-model [:string [:min-length]] {:number 2 :string "1"})))
-    (is (= ["Invalid maximun length for :string. Maximun is 4, received 7."]
+    (is (= ["Invalid maximum length for :string. Maximum is 4, received 7."]
            (core/messager* test-model [:string [:max-length]] {:number 2 :string "7777777"})))))
 
 (deftest core-public-api-test
@@ -149,9 +161,33 @@
            (core/messages :test {})))
     (is (= ["Invalid type for field :text. Expected String, received Long."]
            (core/messages :test {:text 1})))
-    (is (= ["Invalid minimun length for :text. Minimun is 2, received 1."
+    (is (= ["Invalid minimum length for :text. Minimum is 2, received 1."
             "Invalid format for :text."]
            (core/messages :test {:text "1"})))
-    (is (= ["Invalid maximun length for :text. Maximun is 5, received 9."
+    (is (= ["Invalid maximum length for :text. Maximum is 5, received 9."
             "Invalid format for :text."]
-           (core/messages :test {:text "abcdefghi"})))))
+           (core/messages :test {:text "abcdefghi"}))))
+
+  (testing "Human readable messages using custom messages"
+    (let [req-custom (fn [rule _data] (format "Faltou campo %s." (-> rule :key)))
+          type-custom (fn [rule data] (format "Tipo invalido do campo %s. Chegou %s." (-> rule :key) (type ((-> rule :key) data))))
+          min-length-custom (fn [rule _data] (format "Tamanho minimo era %s." (-> rule :min-length)))
+          max-length-custom (fn [rule _data] (format "Tamanho maximo era %s." (-> rule :max-length)))
+          format-custom (fn [_rule _data] "Formato inválido.")
+          custom-messages {:req req-custom :type type-custom :min-length min-length-custom
+                           :max-length max-length-custom :format format-custom}]
+      (core/defmodel :test [{:key :text :type String :req true :min-length 2 :max-length 5 :format #"\d{3}"}])
+      (core/set-config! :custom-messages custom-messages)
+      (is (nil? (core/messages :no-existe {:text "123"})))
+      (is (= []
+             (core/messages :test {:text "123"})))
+      (is (= ["Faltou campo :text."]
+             (core/messages :test {})))
+      (is (= ["Tipo invalido do campo :text. Chegou class java.lang.Long."]
+             (core/messages :test {:text 1})))
+      (is (= ["Tamanho minimo era 2."
+              "Formato inválido."]
+             (core/messages :test {:text "1"})))
+      (is (= ["Tamanho maximo era 5."
+              "Formato inválido."]
+             (core/messages :test {:text "abcdefghi"}))))))
