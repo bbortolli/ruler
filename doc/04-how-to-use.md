@@ -7,6 +7,16 @@ In the example a model with identifier :model-test is being created
 ```clj
 (ruler.core/defmodel
   :model-test
+  {:name           {:type String :req true :min-length 1 :max-length 256}
+   :document       {:type String :req true :format #"\d{8}"}
+   :document-code  {:type Integer :req-depends [:document]}
+   :age            {:type Integer :req true :min 12}
+   :driver-license {:type String :req-fn (fn [data] (>= (:age data) 21))}})
+
+;; OR
+
+(ruler.core/defmodel
+  :model-test
   [{:key :name :type String :req true :min-length 1 :max-length 256}
    {:key :document :type String :req true :format  #"\d{8}"}
    {:key :document-code :type Integer :req-depends [:document]}
@@ -92,6 +102,12 @@ See example:
   (when-let [injection (:ruler/injection data)]
     (= "premium" (:account-type injection))))
 
+(ruler.core/defmodel
+  :injection-test
+  {:account      {:type String :req true}
+   :verification {:type String :format #"[0-9]{1}x[A-Z]{3}#" :req-fn custom-validation}})
+
+;; OR
 (ruler.core/defmodel
   :injection-test
   [{:key :account :type String :req true}

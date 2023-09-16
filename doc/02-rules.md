@@ -11,8 +11,10 @@ Rule is data. A map with keys and values which defines a field.
 
 | Param       | Type       | Description                           |
 | :---------- | :--------- | :---------------------------------- |
-| `:key` | `keyword` | Reference for the field to be checked |
+| `:key` | `keyword` | Reference for the field to be checked. See note (1) |
 | `:type` | `<allowed-types>` | Defines the type to this field |
+
+#### (1) If you use map structure, the ':key' is already the keyword to reference a rule
 
 - Optional keys
 
@@ -42,6 +44,12 @@ Rule is data. A map with keys and values which defines a field.
 Example, Required field :document-type only when :document exists
 ```clj
 (def my-rules
+  {:document :type {String :req false}
+   :document-type  {:type String :req-depends [:document]}})
+
+;; OR
+
+(def my-rules
   [{:key :document :type String :req false}
    {:key :document-type :type String :req-depends [:document]}])
 ```
@@ -52,6 +60,12 @@ Example: Required field :driver-license only if :age is >= 21
 ```clj
 (defn custom-validator [data]
   (>= (:age data) 21))
+
+(def my-rules2
+  {:age            {:type Integer :req false}
+   :driver-license {:type String  :req-fn custom-validator}})
+
+;; OR
 
 (def my-rules2
   [{:key :age :type Integer :req false}
@@ -87,6 +101,17 @@ Example: :driver-license should not be present if age < 21
 
 ### Examples
 ```clj
+(def my-rules3
+  {:first-name          {:type String :required true :min-length 1 :max-length 256}
+   :last-name           {:type String :required true :min-length 1 :max-length 256}
+   :date-of-birth       {:type String :required true :length 10}
+   :other-date-of-birth {:type String :format #"\d{4}-\d{2}-\d{2}"}
+   :protocol-number     {:type Integer :required true}
+   :weight              {:type Double :min 0.001}
+   :classification      {:type String :contains ["A" "B" "C"]}})
+
+;; OR
+
 (def my-rules3
  [{:key :first-name :type String :required true :min-length 1 :max-length 256}
   {:key :last-name :type String :required true :min-length 1 :max-length 256}
