@@ -99,8 +99,9 @@
   ([kw model opts]
    (assert (keyword? kw) "Model identifier should be a keyword.")
    (assert (seq model) "Model can not be empty.")
-   (rules/validate-all-rules model)
-   (create-model! kw {:model model :opts opts})))
+   (let [model' (models/parse-structure model)]
+     (rules/validate-all-rules model')
+     (create-model! kw {:model model' :opts opts}))))
 
 (defn valid?
   "Validate input data following the rules defined in the model identified as 'k'."
