@@ -3,6 +3,23 @@
    [clojure.test :refer [deftest testing is]]
    [ruler.models :as models]))
 
+(deftest parse-structure-test
+  (testing "Parsing map structure to coll"
+    (is (= [{:key :test :type Integer}]
+           (models/parse-structure {:test {:type Integer}})))
+    (is (= [{:key :test :type Integer :req true :max 999}]
+           (models/parse-structure {:test {:type Integer :req true :max 999}})))
+    (is (= [{:key :test :type Integer :req true :max 999}]
+           (models/parse-structure {:test {:key "lul" :type Integer :req true :max 999}}))))
+
+  (testing "Already coll, dont need to be parsed"
+    (is (= [{:key :test :type Integer}]
+           (models/parse-structure [{:key :test :type Integer}])))
+    (is (= [{:key :test :type Integer :req true :max 999}]
+           (models/parse-structure [{:key :test :type Integer :req true :max 999}])))
+    (is (= [{:key :test :type Integer :req true :max 999}]
+           (models/parse-structure [{:key :test :type Integer :req true :max 999}])))))
+
 (def test-rule
   {:key :test
    :type String

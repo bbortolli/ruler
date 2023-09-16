@@ -120,6 +120,9 @@
     (core/defmodel :test [{:key :text :type String :req true}
                           {:key :number :type Integer}
                           {:key :from-fn :type String :req-fn (fn [data] (true? (some-> data :ruler/injection :value)))}])
+    (core/defmodel :test-map {:text    {:type String :req true}
+                              :number  {:type Integer}
+                              :from-fn {:type String :req-fn (fn [data] (true? (some-> data :ruler/injection :value)))}})
 
     (is (nil? (core/describe :test {:text "1" :number 10})))
     (is (nil? (core/describe :test {:text "1" :number 10} {:value false})))
@@ -127,7 +130,15 @@
     (is (= {:text [:type] :number [:type]}
            (core/describe :test {:text 1 :number "not-a-number"})))
     (is (= {:from-fn [:req-fn]}
-           (core/describe :test {:text "1" :number 10} {:value true}))))
+           (core/describe :test {:text "1" :number 10} {:value true})))
+
+    (is (nil? (core/describe :test-map {:text "1" :number 10})))
+    (is (nil? (core/describe :test-map {:text "1" :number 10} {:value false})))
+    (is (nil? (core/describe :test-map {:text "1" :number 10 :from-fn "im-here"} {:value true})))
+    (is (= {:text [:type] :number [:type]}
+           (core/describe :test-map {:text 1 :number "not-a-number"})))
+    (is (= {:from-fn [:req-fn]}
+           (core/describe :test-map {:text "1" :number 10} {:value true}))))
 
   (testing "Human readable messages"
     (core/defmodel :test [{:key :text :type String :req true :min-length 2 :max-length 5 :format #"\d{3}"}])
