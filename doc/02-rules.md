@@ -44,8 +44,8 @@ Rule is data. A map with keys and values which defines a field.
 Example, Required field :document-type only when :document exists
 ```clj
 (def my-rules
-  {:document :type {String :req false}
-   :document-type  {:type String :req-depends [:document]}})
+  {:document      {:type String :req false}
+   :document-type {:type String :req-depends [:document]}})
 
 ;; OR
 
