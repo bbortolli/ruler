@@ -40,6 +40,9 @@ See [models](./03-models.md) for more info
 (ruler.core/set-config! :global-opts {:extra-keys? false})
 ```
 
+### Attention
+The configuration setting :global-opts will be merged with the existing configuration. If you define it multiple times, ensure that all changes are necessary.
+
 ## Validating a model
 To validate a model you should call this function 'valid?'.
 
